@@ -7,13 +7,18 @@ import (
 	"bytes"
 	"strconv"
 	"net/http"
+	"crypto/md5"
+    "encoding/hex"
 	"encoding/json"
 	_ "embed"
 )
 
 var (
+	//go:embed pass_md5
+	passMd5 string
 	//go:embed bot_token
 	botToken string
+	chatIDs []int64
 	baseURL  = "https://api.telegram.org/bot" + botToken + "/"
 )
 
@@ -38,6 +43,29 @@ type Update struct {
 type Response struct {
 	OK     bool     `json:"ok"`
 	Result []Update `json:"result"`
+}
+
+func md5Hash(text string) string {
+    // Create a new MD5 hash object
+    hash := md5.New()
+
+    // Write the string data to the hash object
+    hash.Write([]byte(text))
+
+    // Compute the MD5 checksum
+    checksum := hash.Sum(nil)
+
+    // Convert the checksum to a hexadecimal string
+    return hex.EncodeToString(checksum)
+}
+
+func contains[T comparable](slice []T, item T) bool {
+    for _, v := range slice {
+        if v == item {
+            return true
+        }
+    }
+    return false
 }
 
 // SendMessage sends a message to the specified chat ID
@@ -102,13 +130,19 @@ func main() {
 			offset = update.UpdateID + 1
 			chatID := update.Message.Chat.ID
 			text := update.Message.Text
-			fmt.Printf("Received message: %s\n", text)
-
-			// Echo the received message back to the user
-			responseText := "You said: " + text
-			err := SendMessage(chatID, responseText)
-			if err != nil {
-				log.Fatalf("Error sending message: %v", err)
+			// fmt.Printf("Received message: %s\n", text)
+			if md5Hash(text) == passMd5 {
+				fmt.Println("Password answered in Chat ID:", chatID)
+				chatIDs = append(chatIDs, chatID)
+			}
+			
+			if contains(chatIDs, chatID) {
+				// Echo the received message back to the user
+				responseText := "You said: " + text
+				err := SendMessage(chatID, responseText)
+				if err != nil {
+					log.Fatalf("Error sending message: %v", err)
+				}
 			}
 		}
 	}
