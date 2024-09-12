@@ -51,7 +51,6 @@ type Response struct {
 }
 
 func SendMessage(chatID int64, text string) error {
-
 	payload := map[string]interface{}{
 		"chat_id": chatID,
 		"text":    text,
