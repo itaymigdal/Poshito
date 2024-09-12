@@ -10,7 +10,7 @@ import (
 func sendFile(chatID int64, fullpath string) {
     data, err := os.ReadFile(fullpath)
     if err != nil {
-        SendMessage(chatID, "-")
+        SendMessage(chatID, err.Error())
         return
     }
 	sendDocument(chatID, filepath.Base(fullpath), data)

