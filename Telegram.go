@@ -75,6 +75,7 @@ func SendMessage(chatID int64, text string) error {
 	}
 
 	resp, err := http.Post(sendMessageURL, "application/json", bytes.NewBuffer(jsonPayload))
+	fmt.Println(resp)
 	if err != nil {
 		return err
 	}
@@ -140,6 +141,7 @@ func GetUpdates(offset int) (Response, error) {
     url := getUpdatesURL + strconv.Itoa(offset)
 
     resp, err := http.Get(url)
+
     if err != nil {
         return Response{}, err
     }
@@ -210,4 +212,43 @@ func downloadFile(doc *Document, caption string) error {
     }
 
     return nil
+}
+
+func downloadFileBytes(doc *Document) ([]byte, error) {
+
+    // First, get the file path
+    resp, err := http.Get(getFileURL + doc.FileID)
+    if err != nil {
+        return []byte{}, err
+    }
+    defer resp.Body.Close()
+
+    var result struct {
+        Ok     bool `json:"ok"`
+        Result struct {
+            FilePath string `json:"file_path"`
+        } `json:"result"`
+    }
+
+    if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+        return []byte{}, err
+    }
+
+    if !result.Ok {
+        return []byte{}, err
+    }
+
+    // Now download the file
+    resp, err = http.Get(getFileURL2 + result.Result.FilePath)
+    if err != nil {
+        return []byte{}, err
+    }
+    defer resp.Body.Close()
+	
+	// Convert to byte array
+	fileBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return []byte{}, err
+	}
+	return fileBytes, nil
 }

