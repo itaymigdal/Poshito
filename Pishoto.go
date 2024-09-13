@@ -52,16 +52,39 @@ func main() {
 			offset = update.UpdateID + 1
 			chatID := update.Message.Chat.ID
 			text := update.Message.Text
-			if contains(chatIDs, chatID) {
+			file := update.Message.Document
+			filePath := update.Message.Caption
+			fileName := update.Message.Document.FileName
+			// if contains(chatIDs, chatID) {
+				if file != nil {
+					// Gonna download a file from the bot
+					var responseText string
+					err := downloadFile(file, filePath)
+					if err != nil {
+						// Caption is bad file path, let's try file name in current folder
+						err = downloadFile(file, fileName)
+						if err != nil {
+							responseText = "Could not save file"
+						} else {
+							responseText = "Saved: " + fileName
+						}
+					} else {
+						responseText = "Saved: " + filePath
+					}
+					// Send message and continue to next task
+					SendMessage(chatID, responseText)
+					continue
+				}
 				parseCommand(chatID, text)
-			} else if md5Hash(text) == passMd5 {
-				chatIDs = append(chatIDs, chatID)
-				responseText := "Password confirmed. \nPishoto is welcoming you 🤖"
-				SendMessage(chatID, responseText)
-			} else {
-				responseText := "Wrong password."
-				SendMessage(chatID, responseText)
-			}
+			// } else if md5Hash(text) == passMd5 {
+				// chatIDs = append(chatIDs, chatID)
+				// responseText := "Password confirmed. \nPishoto is welcoming you 🤖"
+				// SendMessage(chatID, responseText)
+			// } else {
+			// 	responseText := "Wrong password."
+			// 	SendMessage(chatID, responseText)
+			// }
+
 		}
 	}
 }

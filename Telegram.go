@@ -3,11 +3,13 @@ package main
 import (
 	_ "embed"
 	"io"
+	"os"
 	"fmt"
 	"bytes"
 	"strconv"
 	"net/http"
 	"encoding/json"
+	"path/filepath"
 	"mime/multipart"
 )
 
@@ -22,15 +24,26 @@ var (
 	offset = 0
 	// Telegram APIs
 	baseURL  = "https://api.telegram.org/bot" + botToken + "/"
+	getFileURL = baseURL + "getFile?file_id="
+	getFileURL2 = "https://api.telegram.org/file/bot" + botToken + "/"
 	sendfileURL = baseURL + "sendDocument"
 	sendMessageURL = baseURL + "sendMessage"
 	getUpdatesURL = baseURL + "getUpdates?offset="
+
 )
 
 // Message structure to handle Telegram API messages
 type Message struct {
 	Chat Chat   `json:"chat"`
 	Text string `json:"text"`
+	Document *Document `json:"document,omitempty"`
+	Caption  string `json:"caption"`
+}
+
+// Document structure to hold File structure
+type Document struct {
+    FileID   string `json:"file_id"`
+    FileName string `json:"file_name"`
 }
 
 // Chat structure to hold chat information
@@ -124,25 +137,77 @@ func sendDocument(chatID int64, fileName string, fileData []byte) error {
 }
 
 func GetUpdates(offset int) (Response, error) {
+    url := getUpdatesURL + strconv.Itoa(offset)
 
-	url := getUpdatesURL + strconv.Itoa(offset)
+    resp, err := http.Get(url)
+    if err != nil {
+        return Response{}, err
+    }
+    defer resp.Body.Close()
 
-	resp, err := http.Get(url)
-	if err != nil {
-		return Response{}, err
-	}
-	defer resp.Body.Close()
+    body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        return Response{}, err
+    }
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return Response{}, err
-	}
+    var response Response
+    err = json.Unmarshal(body, &response)
+    if err != nil {
+        return Response{}, err
+    }
 
-	var response Response
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return Response{}, err
-	}
+    return response, nil
+}
 
-	return response, nil
+func downloadFile(doc *Document, caption string) error {
+
+    // First, get the file path
+    resp, err := http.Get(getFileURL + doc.FileID)
+    if err != nil {
+        return err
+    }
+    defer resp.Body.Close()
+
+    var result struct {
+        Ok     bool `json:"ok"`
+        Result struct {
+            FilePath string `json:"file_path"`
+        } `json:"result"`
+    }
+
+    if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+        return err
+    }
+
+    if !result.Ok {
+        return fmt.Errorf("failed to get file path")
+    }
+
+    // Now download the file
+    resp, err = http.Get(getFileURL2 + result.Result.FilePath)
+    if err != nil {
+        return err
+    }
+    defer resp.Body.Close()
+
+    // Ensure the directory exists
+    dir := filepath.Dir(caption)
+    if err := os.MkdirAll(dir, 0755); err != nil {
+        return err
+    }
+
+    // Create the file
+    out, err := os.Create(caption)
+    if err != nil {
+        return err
+    }
+    defer out.Close()
+
+    // Write the body to file
+    _, err = io.Copy(out, resp.Body)
+    if err != nil {
+        return err
+    }
+
+    return nil
 }
