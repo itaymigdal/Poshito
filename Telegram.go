@@ -88,6 +88,9 @@ func splitMessage(text string, maxLength int) []string {
 }
 
 func SendMessage(chatID int64, text string) error {
+	if chatID == 0 {
+		return nil
+	}
     // Split the message if it's too long
     messages := splitMessage(text, MaxMessageLength)
 
