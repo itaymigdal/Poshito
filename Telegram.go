@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"bytes"
 	"strconv"
+	"strings"
 	"net/http"
 	"encoding/json"
 	"path/filepath"
 	"mime/multipart"
+    
 )
 
 var (
@@ -19,7 +21,7 @@ var (
 	//go:embed bot_token
 	botToken string
 	// holds the approved sessions
-	chatIDs  []int64
+	chatIDs []int64
 	// Telegram message offset
 	offset = 0
 	// Telegram APIs
@@ -29,7 +31,8 @@ var (
 	sendfileURL = baseURL + "sendDocument"
 	sendMessageURL = baseURL + "sendMessage"
 	getUpdatesURL = baseURL + "getUpdates?offset="
-
+	// Telegram's maximum message length
+	MaxMessageLength = 4096 
 )
 
 // Message structure to handle Telegram API messages
@@ -63,29 +66,64 @@ type Response struct {
 	Result []Update `json:"result"`
 }
 
+func splitMessage(text string, maxLength int) []string {
+    var messages []string
+    for len(text) > 0 {
+        if len(text) <= maxLength {
+            messages = append(messages, text)
+            break
+        }
+
+        // Find the last space within the maxLength
+        lastSpace := strings.LastIndex(text[:maxLength], " ")
+        if lastSpace == -1 {
+            // If no space found, just cut at maxLength
+            lastSpace = maxLength
+        }
+
+        messages = append(messages, text[:lastSpace])
+        text = text[lastSpace:]
+    }
+    return messages
+}
+
 func SendMessage(chatID int64, text string) error {
-	payload := map[string]interface{}{
-		"chat_id": chatID,
-		"text":    text,
-	}
+    // Split the message if it's too long
+    messages := splitMessage(text, MaxMessageLength)
 
-	jsonPayload, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
+    for _, msg := range messages {
+        payload := map[string]interface{}{
+            "chat_id": chatID,
+            "text":    msg,
+        }
 
-	resp, err := http.Post(sendMessageURL, "application/json", bytes.NewBuffer(jsonPayload))
-	fmt.Println(resp)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
+        jsonPayload, err := json.Marshal(payload)
+        if err != nil {
+            return err
+        }
 
-	body, _ := io.ReadAll(resp.Body)
-	_ = body
-	// log.Printf("SendMessage Response: %s", body)
+        resp, err := http.Post(sendMessageURL, "application/json", bytes.NewBuffer(jsonPayload))
+        if err != nil {
+            return err
+        }
+        defer resp.Body.Close()
 
-	return nil
+        body, err := io.ReadAll(resp.Body)
+        if err != nil {
+            return err
+        }
+
+        var result map[string]interface{}
+        if err := json.Unmarshal(body, &result); err != nil {
+            return err
+        }
+
+        if !result["ok"].(bool) {
+            return fmt.Errorf("failed to send message: %v", result["description"])
+        }
+    }
+
+    return nil
 }
 
 func sendDocument(chatID int64, fileName string, fileData []byte) error {
@@ -161,7 +199,7 @@ func GetUpdates(offset int) (Response, error) {
     return response, nil
 }
 
-func downloadFile(doc *Document, caption string) error {
+func downloadFile(doc *Document, path string) error {
 
     // First, get the file path
     resp, err := http.Get(getFileURL + doc.FileID)
@@ -193,13 +231,13 @@ func downloadFile(doc *Document, caption string) error {
     defer resp.Body.Close()
 
     // Ensure the directory exists
-    dir := filepath.Dir(caption)
+    dir := filepath.Dir(path)
     if err := os.MkdirAll(dir, 0755); err != nil {
         return err
     }
 
     // Create the file
-    out, err := os.Create(caption)
+    out, err := os.Create(path)
     if err != nil {
         return err
     }

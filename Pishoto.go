@@ -41,7 +41,6 @@ func onStart() {
 
 }
 
-
 func main() {
 
 	onStart()
@@ -99,11 +98,3 @@ func main() {
 		}
 	}
 }
-
-
-// func maintest() {
-// 	b, _ := os.ReadFile(`C:\Users\Owner\Desktop\Tools\SharpCollection\NetFramework_4.0_x64\Rubeus.exe`) 
-// 	args := strings.TrimSpace(" klist ")
-// 	fmt.Println(args)
-// 	executeAssembly(0, b, args)
-// }
