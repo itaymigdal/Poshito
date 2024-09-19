@@ -7,6 +7,9 @@ import (
 	"path/filepath"
 )
 
+var (
+	noSuchCommand = "No such command 🥴"
+)
 
 func wrapSendFile(chatID int64, fullpath string) {
     data, err := os.ReadFile(fullpath)
@@ -45,7 +48,7 @@ func parseCommand(chatID int64, text string) {
 		}
 		executePowershell(chatID, scriptBlock, "")
 	default:
-		SendMessage(chatID, "No such command 🥴")
+		SendMessage(chatID, noSuchCommand)
 	}
 }
 
@@ -75,6 +78,8 @@ func parseFileCommand(chatID int64, file *Document, caption string) {
 			responseText = "Saved: " + filePath
 		}
 		SendMessage(chatID, responseText)
+	} else {
+		SendMessage(chatID, noSuchCommand)
 	}
 }
 
