@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"encoding/json"
 	"path/filepath"
-	"mime/multipart"
-    
+	"mime/multipart"   
 )
+
 
 var (
 	//go:embed pass_md5
@@ -129,7 +129,7 @@ func SendMessage(chatID int64, text string) error {
     return nil
 }
 
-func sendDocument(chatID int64, fileName string, fileData []byte) error {
+func sendFile(chatID int64, fileName string, fileData []byte) error {
 	
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)

@@ -32,6 +32,6 @@ func takeScreenshots(chatID int64) {
 		fileName := fmt.Sprintf("screenshot_%d_%dx%d.png", i, bounds.Dx(), bounds.Dy())
 
 		// Send the image to Telegram
-		_ = sendDocument(chatID, fileName, buf.Bytes())
+		_ = sendFile(chatID, fileName, buf.Bytes())
 	}
 }

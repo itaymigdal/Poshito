@@ -7,13 +7,13 @@ import (
 	clr "github.com/Ne0nd0g/go-clr"
 )
 
+
 var (
 	clrInstance *CLRInstance
 	assemblies  []*assembly
+	//go:embed patch_exit.exe
+	patchExitAssembly []byte
 )
-
-//go:embed patch_exit.exe
-var patchExitAssembly []byte
 
 type assembly struct {
 	methodInfo *clr.MethodInfo

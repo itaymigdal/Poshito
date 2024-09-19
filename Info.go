@@ -47,7 +47,6 @@ func getInfo(chatID int64) {
 	SendMessage(chatID, infoStr)
 }
 
-
 func isAdmin() bool {
 	var sid *windows.SID
 
@@ -63,7 +62,6 @@ func isAdmin() bool {
 
 	return admin
 }
-
 
 func getPublicIP() (string, error) {
 	resp, err := http.Get("http://api.ipify.org")

@@ -5,6 +5,7 @@ import (
 	"os/exec"
 )
 
+
 func executeCommand(chatID int64, commandParts []string) {
 
 	// Execute the command using the first element as the command and the rest as arguments
