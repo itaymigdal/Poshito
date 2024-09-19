@@ -49,6 +49,35 @@ func parseCommand(chatID int64, text string) {
 	}
 }
 
+func parseFileCommand(chatID int64, file *Document, caption string) {
+	if strings.HasPrefix(caption, "/asm") {
+		// Gonna execute assembly
+		assemblyBytes, err := downloadFileBytes(file)
+		if err == nil {
+			assemblyArgs := strings.Split(strings.TrimSpace(caption[4:]), " ")
+			executeAssembly(chatID, assemblyBytes, assemblyArgs, "")
+		} 
+	} else if (strings.HasPrefix(caption, "/up")) {
+		var responseText string
+		// Gonna download a file from the bot
+		filePath := strings.TrimSpace(caption[3:])
+		err := downloadFile(file, filePath)
+		if err != nil {
+			// Caption is bad file path, let's try original file name to current folder
+			fileName := file.FileName
+			err = downloadFile(file, fileName)
+			if err != nil {
+				responseText = "Could not save file"
+			} else {
+				responseText = "Saved: " + fileName
+			}
+		} else {
+			responseText = "Saved: " + filePath
+		}
+		SendMessage(chatID, responseText)
+	}
+}
+
 func onStart() {
 }
 
@@ -65,38 +94,11 @@ func main() {
 			file := update.Message.Document
 			caption := update.Message.Caption
 			// if contains(chatIDs, chatID) {
-				var responseText string
 				if file != nil {
-					if strings.HasPrefix(caption, "/asm") {
-						// Gonna execute assembly
-						assemblyBytes, err := downloadFileBytes(file)
-						if err == nil {
-							assemblyArgs := strings.Split(strings.TrimSpace(caption[4:]), " ")
-							executeAssembly(chatID, assemblyBytes, assemblyArgs, "")
-						}
-						continue 
-					} else if (strings.HasPrefix(caption, "/up")) {
-						// Gonna download a file from the bot
-						filePath := strings.TrimSpace(caption[3:])
-						err := downloadFile(file, filePath)
-						if err != nil {
-							// Caption is bad file path, let's try original file name in current folder
-							fileName := update.Message.Document.FileName
-							err = downloadFile(file, fileName)
-							if err != nil {
-								responseText = "Could not save file"
-							} else {
-								responseText = "Saved: " + fileName
-							}
-						} else {
-							responseText = "Saved: " + filePath
-						}
-						// Send message and continue to next task
-						SendMessage(chatID, responseText)
-						continue
-					}
+					parseFileCommand(chatID, file, caption)
+				} else  {
+					parseCommand(chatID, text)
 				}
-				parseCommand(chatID, text)
 			// } else if md5Hash(text) == passMd5 {
 				// chatIDs = append(chatIDs, chatID)
 				// responseText := "Password confirmed. \nPishoto is welcoming you 🤖"
