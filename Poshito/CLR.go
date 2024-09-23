@@ -14,9 +14,9 @@ import (
 var (
 	clrInstance *CLRInstance
 	assemblies  []*assembly
-	//go:embed patch_exit.exe
+	//go:embed Assemblies/patch_exit.exe
 	patchExitAssembly []byte
-	//go:embed PowerShdll.exe
+	//go:embed Assemblies/PowerShdll.exe
 	powershdllAssembly []byte
 	powershdllHash = md5.Sum(powershdllAssembly)
 )

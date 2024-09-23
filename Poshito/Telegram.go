@@ -16,9 +16,9 @@ import (
 
 
 var (
-	//go:embed pass_md5
+	//go:embed Config/pass_md5
 	passMd5 string
-	//go:embed bot_token
+	//go:embed Config/bot_token
 	botToken string
 	// holds the approved sessions
 	chatIDs []int64
