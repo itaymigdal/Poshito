@@ -1,4 +1,4 @@
-module Pishoto
+module Poshito
 
 go 1.23.1
 

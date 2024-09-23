@@ -106,7 +106,7 @@ func main() {
 				}
 			// } else if md5Hash(text) == passMd5 {
 				// chatIDs = append(chatIDs, chatID)
-				// responseText := "Password confirmed. \nPishoto is welcoming you 🤖"
+				// responseText := "Password confirmed. \nPoshito is welcoming you 🤖"
 				// SendMessage(chatID, responseText)
 			// } else {
 			// 	responseText := "Wrong password."
