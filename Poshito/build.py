@@ -12,11 +12,12 @@ def generate_random_string(length):
 
 
 # compiler args
-compile_cmd = "GOOS=windows GOARCH=amd64 {} build"
+compile_cmd = "cd Agent && GOOS=windows GOARCH=amd64 {} build"
 
 def main():
+    global compile_cmd
     parser = argparse.ArgumentParser(prog="build", description="Poshito-C2 agent builder")
-    parser.add_argument("format", options=["exe", "dll"])
+    parser.add_argument("format", choices=["exe", "dll"])
     parser.add_argument("-nx", "--no-upx", action="store_true", help="don't UPX")
     parser.add_argument("-ns", "--no-upx-sec-obf", action="store_true", help="don't obfuscate UPX section names")
     parser.add_argument("-ng", "--no-garble", action="store_true", help="don't use Garble (use standard Go compiler)")
@@ -28,6 +29,13 @@ def main():
         compile_cmd = compile_cmd.format("go")
     else:
         compile_cmd = compile_cmd.format("garble")
+
+    ret = subprocess.run(compile_cmd, capture_output=True, shell=True)
+    if ret.returncode != 0:
+        print("[-] ERROR: Could not compile")
+        return
+    else:
+        print(f"[+] Compiled successfully")
 
 
 if __name__ == '__main__':
