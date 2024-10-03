@@ -1,5 +1,7 @@
 github.com/Ne0nd0g/go-clr v1.0.3 h1:xt92wwuqY23ZSC7RuHD3mKu3K22Bk5NNbxI803vojK4=
 github.com/Ne0nd0g/go-clr v1.0.3/go.mod h1:TKYSQ/5xT25EvBUttAlUrzpR8yHuI0qTRK495I5xG/I=
+github.com/RIscRIpt/pecoff v0.0.0-20200923152459-a332238caa87 h1:QJKfqX8iCuRT9HZoQGU7cUjnTjKJrypSCghfmAX2vW0=
+github.com/RIscRIpt/pecoff v0.0.0-20200923152459-a332238caa87/go.mod h1:fA0yvj8xMccdfkCwUABhuLZTrRXgyvg3b1k/B/EqHu4=
 github.com/gen2brain/shm v0.1.0 h1:MwPeg+zJQXN0RM9o+HqaSFypNoNEcNpeoGp0BTSx2YY=
 github.com/gen2brain/shm v0.1.0/go.mod h1:UgIcVtvmOu+aCJpqJX7GOtiN7X2ct+TKLg4RTxwPIUA=
 github.com/godbus/dbus/v5 v5.1.0 h1:4KLkAxT3aOY8Li4FRJe/KvhoNFFxo0m6fNuFUO8QJUk=
@@ -10,6 +12,8 @@ github.com/kbinani/screenshot v0.0.0-20240820160931-a8a2c5d0e191 h1:5UHVWNX1qrIb
 github.com/kbinani/screenshot v0.0.0-20240820160931-a8a2c5d0e191/go.mod h1:Pmpz2BLf55auQZ67u3rvyI2vAQvNetkK/4zYUmpauZQ=
 github.com/lxn/win v0.0.0-20210218163916-a377121e959e h1:H+t6A/QJMbhCSEH5rAuRxh+CtW96g0Or0Fxa9IKr4uc=
 github.com/lxn/win v0.0.0-20210218163916-a377121e959e/go.mod h1:KxxjdtRkfNoYDCUP5ryK7XJJNTnpC8atvtmTheChOtk=
+github.com/praetorian-inc/goffloader v0.0.0-20240916162044-43d46b0da23d h1:pMp2ai+PH+MbkFx4rOEWMQay7TPzN6NFe+XDIR2MptY=
+github.com/praetorian-inc/goffloader v0.0.0-20240916162044-43d46b0da23d/go.mod h1:K0+YseOXE3dVjxbABygZsnyLmlSTwJwta+Orht40Fz0=
 golang.org/x/sys v0.0.0-20201018230417-eeed37f84f13/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20220330033206-e17cdc41300f/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.24.0 h1:Twjiwq9dn6R1fQcyiK+wQyHWfaz/BJB+YIpzU/Cv3Xg=
