@@ -3,8 +3,8 @@ package main
 import (
 	_ "embed"
 	"os"
-	"strings"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -96,6 +96,7 @@ func parseFileCommand(chatID int64, file *Document, caption string) {
 }
 
 func onStart() {
+	drm()
 }
 
 func main() {
