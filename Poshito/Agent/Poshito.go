@@ -47,6 +47,9 @@ func parseCommand(chatID int64, text string) {
 			scriptBlock = strings.Split(scriptBlockStr, " ")
 		}
 		executePowershell(chatID, scriptBlock, "")
+	case "/die":
+		SendMessage(chatID, "Poshito exits.")
+		os.Exit(0)
 	default:
 		SendMessage(chatID, noSuchCommand)
 	}
