@@ -111,20 +111,20 @@ func main() {
 			text := update.Message.Text
 			file := update.Message.Document
 			caption := update.Message.Caption
-			// if contains(chatIDs, chatID) {
+			if contains(chatIDs, chatID) {
 				if file != nil {
 					parseFileCommand(chatID, file, caption)
 				} else  {
 					parseCommand(chatID, text)
 				}
-			// } else if md5Hash(text) == passMd5 {
-				// chatIDs = append(chatIDs, chatID)
-				// responseText := "Password confirmed. \nPoshito is welcoming you 🤖"
-				// SendMessage(chatID, responseText)
-			// } else {
-			// 	responseText := "Wrong password."
-			// 	SendMessage(chatID, responseText)
-			// }
+			} else if md5Hash(text) == passMd5 {
+				chatIDs = append(chatIDs, chatID)
+				responseText := "Password confirmed. \nPoshito is welcoming you 🤖"
+				SendMessage(chatID, responseText)
+			} else {
+				responseText := "Wrong password."
+				SendMessage(chatID, responseText)
+			}
 
 		}
 	}

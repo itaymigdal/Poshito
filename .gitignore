@@ -1,4 +1,8 @@
 .vscode/
 test/
-bot_token
-pass_md5
+config/
+Dll.go
+Poshito.Dll
+Poshito.exe
+*.c
+*.h
