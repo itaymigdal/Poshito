@@ -2,13 +2,20 @@ package main
 
 import (
 	_ "embed"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 )
 
 var (
 	noSuchCommand = "No such command 🥴"
+	//go:embed Config/sleep_time
+	sleep_time string
+	//go:embed Config/sleep_time_jitter
+	sleep_time_jitter string
 )
 
 func wrapSendFile(chatID int64, fullpath string) {
@@ -125,7 +132,13 @@ func main() {
 				responseText := "Wrong password."
 				SendMessage(chatID, responseText)
 			}
-
 		}
+		if (len(updates.Result) == 0) {
+			sleep_time, _ := strconv.Atoi(sleep_time)
+			sleep_time_jitter, _ := strconv.Atoi(sleep_time_jitter)
+			time_to_sleep := calcSleepTime(sleep_time, sleep_time_jitter)
+            time.Sleep(time.Duration(time_to_sleep) * time.Second)
+		}
+
 	}
 }

