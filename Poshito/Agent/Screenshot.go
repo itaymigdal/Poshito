@@ -17,7 +17,7 @@ func takeScreenshots(chatID int64) {
 
 		img, err := screenshot.CaptureRect(bounds)
 		if err != nil {
-			SendMessage(chatID, fmt.Sprintf("Error capturing screenshot: %v", err))
+			SendMessage(chatID, fmt.Sprintf("Could not capture screenshot: %v", err))
 			continue
 		}
 
@@ -25,7 +25,7 @@ func takeScreenshots(chatID int64) {
 		var buf bytes.Buffer
 		err = png.Encode(&buf, img)
 		if err != nil {
-			SendMessage(chatID, fmt.Sprintf("Error encoding image: %v", err))
+			SendMessage(chatID, fmt.Sprintf("Could not encode image: %v", err))
 			continue
 		}
 

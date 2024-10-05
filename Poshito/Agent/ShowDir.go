@@ -25,7 +25,7 @@ func showDir(chatID int64, dirpath string) {
 	// Check if the path is a directory
 	fileInfo, err := os.Stat(dirpath)
 	if err != nil {
-		SendMessage(chatID, fmt.Sprintf("Unable to read path: %v", err))
+		SendMessage(chatID, fmt.Sprintf("Could not read path: %v", err))
 		return
 	}
 	if !fileInfo.IsDir() {
@@ -36,7 +36,7 @@ func showDir(chatID int64, dirpath string) {
 	// Read the directory
 	entries, err := os.ReadDir(dirpath)
 	if err != nil {
-		SendMessage(chatID, fmt.Sprintf("Unable to read directory: %v", err))
+		SendMessage(chatID, fmt.Sprintf("Could not read directory: %v", err))
 		return
 	}
 
