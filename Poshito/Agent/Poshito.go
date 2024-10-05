@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "embed"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -59,6 +58,22 @@ func parseCommand(chatID int64, text string) {
 		// We do that to avoid getting the die command again when we're back alive
 		GetUpdates(offset)
 		os.Exit(0)
+	case "/sleep":
+		if len(commandParts) != 3 {
+			SendMessage(chatID, "Wrong number of /sleep arguments")
+			return
+		}
+		// Here we convert only to validate the arguments, it's converted while sleeping again
+		_, err_st := strconv.Atoi(commandParts[1])
+		_, err_sj := strconv.Atoi(commandParts[2])
+		if (err_st != nil) || (err_sj != nil) {
+			SendMessage(chatID, "Wrong /sleep arguments")
+			return
+		}
+		sleep_time = commandParts[1]
+		sleep_time_jitter = commandParts[2]
+		SendMessage(chatID, "Sleep changed")
+
 	default:
 		SendMessage(chatID, noSuchCommand)
 	}
