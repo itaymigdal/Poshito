@@ -1,3 +1,5 @@
+//go:build drm
+
 package main
 
 import (

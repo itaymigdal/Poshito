@@ -1,3 +1,5 @@
+//go:build asm
+
 package main
 
 import (

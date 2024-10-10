@@ -1,3 +1,5 @@
+//go:build clip
+
 package main
 
 import (

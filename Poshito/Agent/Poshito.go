@@ -37,9 +37,9 @@ func parseCommand(chatID int64, text string) {
 			return
 		}
 		executeCommand(chatID, commandParts[1:])
-	case "/showdir":
+	case "/dir":
 		if len(commandParts) == 1 {
-			SendMessage(chatID, "No directory supplied. \nUsage: /showdir <dir-path>")
+			SendMessage(chatID, "No directory supplied. \nUsage: /dir <dir-path>")
 			return
 		}
 		showDir(chatID, strings.Trim(strings.Join(commandParts[1:], " "), `"'`))

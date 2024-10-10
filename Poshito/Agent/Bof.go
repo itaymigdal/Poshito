@@ -1,3 +1,5 @@
+//go:build bof
+
 package main
 
 import (

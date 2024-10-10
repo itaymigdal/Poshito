@@ -1,3 +1,5 @@
+//go:build dir
+
 package main
 
 import (
