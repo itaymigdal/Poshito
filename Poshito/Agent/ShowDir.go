@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 )
 
-
 func showDir(chatID int64, dirpath string) {
 	var result string
 
@@ -96,5 +95,5 @@ func showDir(chatID int64, dirpath string) {
 		return
 	}
 	SendMessage(chatID, result)
- 
+
 }

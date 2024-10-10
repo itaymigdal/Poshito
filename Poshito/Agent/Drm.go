@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"os"
 	"strings"
+
 	"golang.org/x/sys/windows/registry"
 )
 
@@ -11,27 +12,27 @@ import (
 var marker string
 
 func getMachineGuid() string {
-    key, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Cryptography`, registry.QUERY_VALUE)
-    if err != nil {
-        return ""
-    }
-    defer key.Close()
+	key, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Cryptography`, registry.QUERY_VALUE)
+	if err != nil {
+		return ""
+	}
+	defer key.Close()
 
-    machineGuid, _, err := key.GetStringValue("MachineGuid")
-    if err != nil {
-        return ""
-    }
+	machineGuid, _, err := key.GetStringValue("MachineGuid")
+	if err != nil {
+		return ""
+	}
 
-    return machineGuid
+	return machineGuid
 }
 
 func drm() bool {
 	machineGuid := getMachineGuid()
-    if len(machineGuid) == 0 {
-        // failed to get MachineGuid
+	if len(machineGuid) == 0 {
+		// failed to get MachineGuid
 		return false
-    }
-	
+	}
+
 	// Create machine Id and prepare the string to append
 	machineId := md5Hash(strings.TrimSpace(string(machineGuid)))
 	toAppend := machineId + marker

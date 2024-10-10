@@ -1,19 +1,19 @@
 package main
 
 import (
-    "time"
-	"math/rand"
 	"crypto/md5"
 	"encoding/hex"
+	"math/rand"
+	"time"
 )
 
 func calcSleepTime(timeframe int, jitterPercent int) int {
-    rand.Seed(time.Now().UnixNano())
-    
-    jitterRange := (jitterPercent * timeframe) / 100
-    jitterRandom := rand.Intn(jitterRange + 1) - jitterRange/2
-    
-    return timeframe + jitterRandom
+	rand.Seed(time.Now().UnixNano())
+
+	jitterRange := (jitterPercent * timeframe) / 100
+	jitterRandom := rand.Intn(jitterRange+1) - jitterRange/2
+
+	return timeframe + jitterRandom
 }
 
 func md5Hash(text string) string {
@@ -27,7 +27,7 @@ func md5Hash(text string) string {
 	checksum := hash.Sum(nil)
 
 	// Convert the checksum to a hexadecimal string
-	return hex.EncodeToString(checksum)	
+	return hex.EncodeToString(checksum)
 }
 
 func contains[T comparable](slice []T, item T) bool {

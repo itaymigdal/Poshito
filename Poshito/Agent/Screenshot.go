@@ -1,13 +1,13 @@
 package main
 
 import (
+	"bytes"
 	_ "embed"
 	"fmt"
-	"bytes"
 	"image/png"
+
 	"github.com/kbinani/screenshot"
 )
-
 
 func takeScreenshots(chatID int64) {
 	n := screenshot.NumActiveDisplays()
