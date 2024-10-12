@@ -1,3 +1,5 @@
+//go:build screen
+
 package main
 
 import (

