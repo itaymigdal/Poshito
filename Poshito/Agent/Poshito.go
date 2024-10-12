@@ -106,13 +106,6 @@ func parseFileCommand(chatID int64, file *Document, caption string) {
 			assemblyArgs := strings.Split(strings.TrimSpace(caption[4:]), " ")
 			executeAssembly(chatID, assemblyBytes, assemblyArgs, "")
 		}
-	} else if strings.HasPrefix(caption, "/bof") {
-		// Gonna execute BOF
-		bofBytes, err := downloadFileBytes(file)
-		if err == nil {
-			bofArgs := strings.Split(strings.TrimSpace(caption[4:]), " ")
-			executeBof(chatID, bofBytes, bofArgs)
-		}
 	} else if strings.HasPrefix(caption, "/up") {
 		var responseText string
 		// Gonna download a file from the bot

@@ -17,7 +17,6 @@ poshito_help = """
 /clip       Get clipboard content
 /screen     Get screenshot
 /asm        Execute .NET assembly           < (assembly file | assembly hash) + assembly arguments >
-/bof        Execute BOF                     < bof file + bof arguments >    
 /die        Kill agent
 /sleep      Change sleep time               < seconds > < jitter % >
 """
@@ -29,7 +28,6 @@ build_tags_list = [
     "drm",
     "dir",
     "clip",
-    "bof",
     "asm"
 ]
 build_tags_cmd = f'-tags "{" ".join(build_tags_list)}"'
@@ -94,8 +92,6 @@ def main():
                     help="disable directory view feature (/dir)")
     parser.add_argument("-dc", "--disable-clip", action="store_true",
                         help="disable clipboard feature (/clip)")
-    parser.add_argument("-db", "--disable-bof", action="store_true",
-                    help="disable BOF loading feature (/bof)")
     parser.add_argument("-da", "--disable-asm", action="store_true",
                     help="disable assemblies loading feature (/asm + /iex)")
 
@@ -120,8 +116,6 @@ def main():
         compile_cmd = compile_cmd.replace("dir", "") 
     if args.disable_clip:
         compile_cmd = compile_cmd.replace("clip", "")  
-    if args.disable_bof:
-        compile_cmd = compile_cmd.replace("bof", "")
     if args.disable_asm:
         compile_cmd = compile_cmd.replace("asm", "")
 
