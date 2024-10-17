@@ -87,7 +87,6 @@ def main():
                         help="time to sleep between callbacks (default: 5)", default="5")
     parser.add_argument("-sj", "--sleep-jitter", metavar="<percent (%)>", 
                         help="sleep time jitter in percent (default: 0)", default="0")
-    
     parser.add_argument("-dd", "--disable-drm", action="store_true",
                         help="disable DRM feature")
     parser.add_argument("-dr", "--disable-dir", action="store_true",
@@ -101,6 +100,10 @@ def main():
 
     args = parser.parse_args()
     
+    if args.format == "dll" and not args.disable_drm:
+        print("[-] Cannot build Dll with DRM feature. use -dd / --disable-drm.")
+        quit(1)
+
     # Prepare compilation command line and stuff
     if args.format == "exe":
         compile_cmd = compile_exe
