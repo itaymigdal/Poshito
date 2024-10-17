@@ -32,9 +32,10 @@ build_tags_list = [
     "asm"
 ]
 build_tags_cmd = f'-tags "{" ".join(build_tags_list)}"'
-pre_compile = "cd Agent && GOOS=windows GOARCH=amd64"
-compile_exe = f"{pre_compile} garble build -o ../{output_exe} {build_tags_cmd} ."
-compile_dll = f"{pre_compile} CGO_ENABLED=1 garble build -buildmode=c-shared -o ../{output_dll} {build_tags_cmd} . && rm ../*.h"
+pre_compile = "cd Agent && GOOS=windows GOARCH=amd64 CGO_ENABLED=1"
+garble_compile = "garble -tiny -literals build"
+compile_exe = f"{pre_compile} {garble_compile} -o ../{output_exe} {build_tags_cmd} ."
+compile_dll = f"{pre_compile} {garble_compile} -buildmode=c-shared -o ../{output_dll} {build_tags_cmd} . && rm ../*.h"
 upx_cmd = "upx -9 {}"
 dll_go_file = """
 package main
@@ -110,7 +111,7 @@ def main():
         with open("Agent/Dll.go", "wt") as f:
             f.write(dll_go_file.format(args.export_name))
     if args.no_garble:
-        compile_cmd = compile_cmd.replace("garble", "go")
+        compile_cmd = compile_cmd.replace(garble_compile, "go build")
 
     # Disable features if needed
     if args.disable_drm:
