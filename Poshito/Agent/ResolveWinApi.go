@@ -12,5 +12,4 @@ var (
 	getClipboardData        = user32.NewProc("GetClipboardData")
 	globalLock              = kernel32.NewProc("GlobalLock")
 	globalUnlock            = kernel32.NewProc("GlobalUnlock")
-	CF_UNICODETEXT   uint32 = 13
 )

