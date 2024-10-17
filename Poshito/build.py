@@ -99,10 +99,6 @@ def main():
                     help="disable assemblies loading feature (/asm + /iex)")
 
     args = parser.parse_args()
-    
-    if args.format == "dll" and not args.disable_drm:
-        print("[-] Cannot build Dll with DRM feature. use -dd / --disable-drm.")
-        quit(1)
 
     # Prepare compilation command line and stuff
     if args.format == "exe":

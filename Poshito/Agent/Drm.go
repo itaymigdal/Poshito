@@ -4,14 +4,19 @@ package main
 
 import (
 	_ "embed"
+	"fmt"
 	"os"
 	"strings"
+	"unsafe"
 
+	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 )
 
 //go:embed Config/marker
 var marker string
+
+const GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS = 0x00000004
 
 func getMachineGuid() string {
 	key, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Cryptography`, registry.QUERY_VALUE)
@@ -28,6 +33,33 @@ func getMachineGuid() string {
 	return machineGuid
 }
 
+func getCurrentModulePath() (string, error) {
+	var module windows.Handle
+	dummy := func() {}
+
+	ret, _, err := procGetModuleHandleExA.Call(
+		uintptr(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS),
+		uintptr(unsafe.Pointer(*(**uintptr)(unsafe.Pointer(&dummy)))),
+		uintptr(unsafe.Pointer(&module)),
+	)
+	if ret == 0 {
+		return "", fmt.Errorf("GetModuleHandleExA failed: %v", err)
+	}
+	defer windows.CloseHandle(module)
+
+	buf := make([]byte, windows.MAX_PATH)
+	size, _, err := procGetModuleFileNameA.Call(
+		uintptr(module),
+		uintptr(unsafe.Pointer(&buf[0])),
+		uintptr(len(buf)),
+	)
+	if size == 0 {
+		return "", fmt.Errorf("GetModuleFileNameA failed: %v", err)
+	}
+
+	return string(buf[:size]), nil
+}
+
 func drm() bool {
 	machineGuid := getMachineGuid()
 	if len(machineGuid) == 0 {
@@ -40,13 +72,13 @@ func drm() bool {
 	toAppend := machineId + marker
 
 	// Get the path of the current executable
-	exePath, err := os.Executable()
+	poshitoPath, err := getCurrentModulePath()
 	if err != nil {
-		// failed to get executable path
+		// failed to retrieve Poshito path
 		return false
 	}
 
-	file, err := os.Open(exePath)
+	file, err := os.Open(poshitoPath)
 	if err != nil {
 		// failed to open executable
 		return false
@@ -81,7 +113,7 @@ func drm() bool {
 	}
 
 	// Append machine ID & marker to the executable
-	f, err := os.OpenFile(exePath, os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(poshitoPath, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		// failed to open executable for writing
 		return false
