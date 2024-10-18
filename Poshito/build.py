@@ -6,21 +6,6 @@ import hashlib
 import argparse
 import subprocess
 
-
-poshito_help = """
-/info       Send information 
-/cmd        Execute a command               < command >
-/iex        Execute a Powershell command    < powershell command >
-/dir        Show directory content          < directory path >
-/down       Download a file                 < file path >
-/up         Upload a file                   < file to upload >
-/clip       Get clipboard content
-/screen     Get screenshot
-/asm        Execute .NET assembly           < (assembly file | assembly hash) + assembly arguments >
-/die        Kill agent
-/sleep      Change sleep time               < seconds > < jitter % >
-"""
-
 output_exe = "Poshito.exe"
 output_dll = "Poshito.dll"
 
@@ -84,7 +69,7 @@ def main():
     parser.add_argument("-en", "--export-name", metavar="<name>", 
                         help="dll export name (default: DllRegisterServer)", 
                         default="DllRegisterServer")
-    parser.add_argument("-st", "--sleep-time",
+    parser.add_argument("-st", "--sleep-time", metavar="<seconds>",
                         help="time to sleep between callbacks (default: 5)", default="5")
     parser.add_argument("-sj", "--sleep-jitter", metavar="<percent (%)>", 
                         help="sleep time jitter in percent (default: 0)", default="0")
