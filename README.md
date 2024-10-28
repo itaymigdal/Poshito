@@ -25,7 +25,7 @@ Nothing too fancy, really. But some of Poshito's features are:
 3. Build the agent:
 
     ```
-    /Poshito/Poshito # ./build.py -h
+    /Poshito/Poshito # python3 build.py -h
     usage: build [-h] [-nx] [-ns] [-ng] [-en <name>] [-st SLEEP_TIME] [-sj <percent (%)>] [-dd] [-dr] [-dc] [-ds] [-da] bot_token password {exe,dll}
 
     Poshito-C2 agent builder
