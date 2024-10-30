@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 	"unsafe"
 
@@ -27,6 +28,12 @@ type POINT struct {
 }
 
 func getClipboard(chatID int64) {
+	// Thanks to https://github.com/golang-design/clipboard/blob/b50badc062a526673961e1465a673e3f3dfc1464/clipboard_windows.go#L299C1-L302C32
+	// On Windows, OpenClipboard and CloseClipboard must be executed on
+	// the same thread. Thus, lock the OS thread for further execution.
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	var responseStr string
 
 	// Open the clipboard
